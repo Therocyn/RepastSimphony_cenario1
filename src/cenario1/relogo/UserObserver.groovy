@@ -1,5 +1,22 @@
 package cenario1.relogo
 
+import java.net.*;
+import java.io.*;
+
+
+
+import com.opencsv.CSVReader;
+
+import au.com.bytecode.opencsv.CSVWriter
+
+import java.io.FileReader
+
+import java.lang.Runnable
+
+import java.io.File;  // Import the File class
+import java.io.FileNotFoundException;  // Import this class to handle errors
+import java.util.Scanner; // Import the Scanner class to read text files
+
 import java.io.FileWriter;
 import java.io.IOException;
 
@@ -12,35 +29,40 @@ import repast.simphony.relogo.schedule.Go;
 import repast.simphony.relogo.schedule.Setup;
 import cenario1.ReLogoObserver;
 
-class UserObserver extends ReLogoObserver{
-
-	/**
-	 * Add observer methods here. For example:
-
-		@Setup
-		def setup(){
-			clearAll()
-			createTurtles(10){
-				forward(random(10))
-			}
-		}
-		
-	 *
-	 * or
-	 * 	
+class UserObserver extends ReLogoObserver implements Runnable{
+	static boolean startMove = false;
 	
-		@Go
-		def go(){
-			ask(turtles()){
-				left(random(90))
-				right(random(90))
-				forward(random(10))
-			}
-		}
-
-	 */
-	@Setup
+		@Setup
 	def setup(){
+		
+		UserObserver obj = new UserObserver();
+		Thread thread = new Thread(obj);
+		thread.start();
+		Thread thread2 = new Thread(new Runnable() {
+			@Override
+			public void run() {
+				
+				String fromclient;
+				
+				ServerSocket Server = new ServerSocket (5001);
+				
+				
+				System.out.println ("TCPServer Waiting for client on port 5001");
+				
+					
+				Socket connected = Server.accept();
+				System.out.println( " THE CLIENT"+" "+ connected.getInetAddress() +":"+connected.getPort()+" IS CONNECTED ON READING SERVER ");
+				
+				PrintWriter outServer = new PrintWriter(connected.getOutputStream(),true);
+				while(true) {
+					if(Car.distCarEnemy<=10) {
+						outServer.println("1");
+					}
+				}				
+				
+			}
+		});
+		thread2.start();
 		
 		clearAll()
 		setDefaultShape(Car, "tankblue")
@@ -54,7 +76,7 @@ class UserObserver extends ReLogoObserver{
 			car(2).face(car(3))
 			car(3).setxy(12, 50)
 			car(3).face(car(5))
-			
+
 			car(4).setxy(22, 50) 
 			car(4).face(car(5))
 			car(5).setxy(23, 50) //comandante
@@ -73,10 +95,23 @@ class UserObserver extends ReLogoObserver{
 			car(11).setxy(38, 50)
 			car(11).facexy(39, 50)
 			
+			car(0).setShape("tankblue")
+			car(1).setShape("tankblue")
+			car(2).setShape("tankblue")
+			car(3).setShape("tankblue")
+			
+			car(4).setShape("tankyellow")
+			car(5).setShape("tankyellow")
+			car(6).setShape("tankyellow")
+			car(7).setShape("tankyellow")
+			
+			car(8).setShape("tankpurple")
+			car(9).setShape("tankpurple")
+			car(10).setShape("tankpurple")
+			car(11).setShape("tankpurple")
 			
 		}
 		setDefaultShape(Enemy, "tankred")
-		//setDefaultShape(Enemy, "truck")
 		createEnemies(1){
 			enemy(12).setxy(80, 50)
 		}
@@ -86,24 +121,73 @@ class UserObserver extends ReLogoObserver{
 			myWriter.write("tick,id,x,y\n");
 			myWriter.close();
 		  } catch (IOException e) {
-			System.out.println("An error occurred.");
+			System.out.println("An error occurred.write");
 			e.printStackTrace();
 		  }
 	
-	
 	}
+	
+	def void run(){
+		System.out.println("im thread: "+ Thread.currentThread().getId());
+		
+		/*boolean flagwrite = false
+		while(true) {
+		FileReader myreader = new FileReader("/home/therocyn/mininet-wifi/examples/s2c2redes/Vinicius/test2_reading_File/data/ataque.csv");
+		CSVReader csvReader = new CSVReader(myreader);
+		list = csvReader.readAll();
+		myreader.close();
+		csvReader.close();
+		
+		if(Car.distCarEnemy<=10 && flagwrite == false) {
+			list.get(13)[1] = "1";
+			FileWriter distwriter = new FileWriter("/home/therocyn/mininet-wifi/examples/s2c2redes/Vinicius/test2_reading_File/data/ataque.csv");
+			CSVWriter csvWriter = new CSVWriter(distwriter);
+			csvWriter.writeAll(list);
+			
+			distwriter.close();
+			csvWriter.close();
+			flagwrite=true 
+		}
+		}*/
+		//System.out.println(Car.distCarEnemy)
+		
+		String fromclient;
+		
+		ServerSocket Server = new ServerSocket (5000);
+		
+		
+		System.out.println ("TCPServer Waiting for client on port 5000");
+		
+			
+			Socket connected = Server.accept();
+			System.out.println( " THE CLIENT"+" "+ connected.getInetAddress() +":"+connected.getPort()+" IS CONNECTED ON WRITING SERVER ");
+		
+			BufferedReader inFromClient = new BufferedReader(new InputStreamReader (connected.getInputStream()));
+		
+			while (true){
+				
+				fromclient = inFromClient.readLine();
+				
+				if ( fromclient.equals("1")){
+					startMove = true;
+					break;
+				}
+			}
+		
+			
+	}
+
 	
 	@Go
 	def go(){
-		
 		ask(cars()){
 			step()
 		}
-		
+			
 		ask(enemies()){
 			step()
 		}
-		sleep(2000) //milliseconds
+		//sleep(2000) //milliseconds
 	}
 }
 	
